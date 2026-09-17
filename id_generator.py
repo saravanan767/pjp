@@ -3,18 +3,29 @@ from PIL import Image, ImageDraw, ImageFont
 import streamlit as st
 
 st.set_page_config(
-    page_title="PJK Membership ID Generator", page_icon="🦋", layout="centered"
+    page_title="PJP Membership ID Generator", page_icon="🦋", layout="centered"
 )
 
 st.title("🦋 Pattamoochi Jananayaga Katchi (PJK)")
 st.subheader("Official Digital Membership ID Card Generator")
 
+# Simulated database counter for sequential ordering (Can be connected to SQLite/Database later)
+# For demonstration, starting at sequential number 00002
+NEXT_SEQUENCE_NUMBER = 2
+auto_member_id = f"PJK/TN/2026/{NEXT_SEQUENCE_NUMBER:05d}"
+
 # User Input Form
 with st.form("id_card_form"):
-    member_name = st.text_input("Member Name", "A. KUMARESAN")
-    member_id = st.text_input("Member ID", "PJK/TN/2024/00001")
-    district = st.text_input("District", "TRICHY")
-    designation = st.text_input("Designation", "FOUNDER / PRESIDENT")
+    member_name = st.text_input("Member Name", "")
+    
+    # Member ID made non-editable (displayed as info text inside the form layout)
+    st.markdown(f"**Member ID (Auto-Generated):** `{auto_member_id}`")
+    
+    district = st.text_input("District", "")
+    
+    # Designation forced to default to 'MEMBER'
+    designation = st.text_input("Designation", "MEMBER")
+    
     uploaded_file = st.file_uploader(
         "Upload Member Photo (Passport Size)", type=["jpg", "jpeg", "png"]
     )
@@ -71,14 +82,14 @@ if submitted:
     user_img = user_img.resize((348, 448))
     card.paste(user_img, (66, 326))
 
-  # 3. Member Details Text Block
+  # 3. Member Details Text Block (Using the auto-generated ID & default designation)
   start_x = 460
   start_y = 330
   line_spacing = 65
 
   details = [
       ("Member Name:", member_name),
-      ("Member ID:", member_id),
+      ("Member ID:", auto_member_id),
       ("District:", district),
       (
           "Date of Joining:",
