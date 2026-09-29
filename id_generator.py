@@ -1,5 +1,6 @@
 from datetime import datetime
-from PIL import Image, ImageDraw, ImageFont
+import secrets
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 import streamlit as st
 
 st.set_page_config(
@@ -9,17 +10,16 @@ st.set_page_config(
 st.title("🦋 Pattamoochi Jananayaga Katchi (PJK)")
 st.subheader("Official Digital Membership ID Card Generator")
 
-# Simulated database counter for sequential ordering (Can be connected to SQLite/Database later)
-# For demonstration, starting at sequential number 00002
-NEXT_SEQUENCE_NUMBER = 2
-auto_member_id = f"PJK/TN/2026/{NEXT_SEQUENCE_NUMBER:05d}"
+if "auto_member_id" not in st.session_state:
+  random_sequence = secrets.randbelow(99999) + 1
+  st.session_state.auto_member_id = f"PJK/TN/2026/{random_sequence:05d}"
+auto_member_id = st.session_state.auto_member_id
 
 # User Input Form
 with st.form("id_card_form"):
     member_name = st.text_input("Member Name", "")
     
-    # Member ID made non-editable (displayed as info text inside the form layout)
-    st.markdown(f"**Member ID (Auto-Generated):** `{auto_member_id}`")
+    st.text_input("Member ID (Auto-Generated)", value=auto_member_id, disabled=True)
     
     district = st.text_input("District", "")
     
@@ -33,8 +33,8 @@ with st.form("id_card_form"):
     submitted = st.form_submit_button("Generate ID Card")
 
 if submitted:
-  # Base Dimensions matching standard vertical ID cards
-  card_width, card_height = 800, 1150
+  # Standard portrait ID card proportions.
+  card_width, card_height = 640, 1024
   card = Image.new("RGB", (card_width, card_height), "#ffffff")
   draw = ImageDraw.Draw(card)
 
@@ -44,82 +44,95 @@ if submitted:
   dark_text = (34, 34, 34)
 
   # 1. Top Header Banner
-  draw.rectangle([(0, 0), (card_width, 220)], fill=maroon)
-  draw.rectangle([(0, 215), (card_width, 225)], fill=gold)
+  draw.rectangle([(0, 0), (card_width, 180)], fill=maroon)
+  draw.rectangle([(0, 175), (card_width, 185)], fill=gold)
 
   # Load standard fonts ( fallbacks to default if custom ttf paths aren't local )
   try:
-    font_title = ImageFont.truetype("arial.ttf", 36)
-    font_subtitle = ImageFont.truetype("arial.ttf", 22)
-    font_body = ImageFont.truetype("arial.ttf", 26)
+    font_title = ImageFont.truetype("arial.ttf", 34)
+    font_subtitle = ImageFont.truetype("arial.ttf", 24)
+    font_body = ImageFont.truetype("arial.ttf", 28)
+    font_footer = ImageFont.truetype("arial.ttf", 14)
   except IOError:
-    font_title = ImageFont.load_default()
-    font_subtitle = ImageFont.load_default()
-    font_body = ImageFont.load_default()
+    try:
+      font_title = ImageFont.truetype("DejaVuSans.ttf", 34)
+      font_subtitle = ImageFont.truetype("DejaVuSans.ttf", 24)
+      font_body = ImageFont.truetype("DejaVuSans.ttf", 28)
+      font_footer = ImageFont.truetype("DejaVuSans.ttf", 14)
+    except IOError:
+      font_title = ImageFont.load_default()
+      font_subtitle = ImageFont.load_default()
+      font_body = ImageFont.load_default()
+      font_footer = ImageFont.load_default()
 
   # Header Text
   draw.text(
-      (220, 50),
-      "PJK MEMBERSHIP CARD",
-      fill=(255, 255, 255),
-      font=font_title,
+    (175, 38),
+    "PJK MEMBERSHIP CARD",
+    fill=(255, 255, 255),
+    font=font_title,
   )
   draw.text(
-      (220, 110),
-      "PATTAMPOOCHI JANANAYAGA KATCHI",
-      fill=gold,
-      font=font_subtitle,
+    (175, 95),
+    "PATTAMPOOCHI JANANAYAGA KATCHI",
+    fill=gold,
+    font=font_subtitle,
   )
 
   # 2. Member Photo Placement Box
-  photo_box_box = [(60, 320), (420, 780)]
+  photo_box_box = [(40, 280), (260, 580)]
   draw.rounded_rectangle(
-      photo_box_box, radius=15, outline=gold, width=4, fill=(245, 245, 245)
+    photo_box_box, radius=15, outline=gold, width=4, fill=(245, 245, 245)
   )
 
   if uploaded_file is not None:
-    user_img = Image.open(uploaded_file)
-    user_img = user_img.resize((348, 448))
-    card.paste(user_img, (66, 326))
+    user_img = ImageOps.fit(
+      Image.open(uploaded_file).convert("RGB"), (208, 292)
+    )
+    card.paste(user_img, (46, 284))
 
   # 3. Member Details Text Block (Using the auto-generated ID & default designation)
-  start_x = 460
-  start_y = 330
-  line_spacing = 65
+  start_x = 295
+  start_y = 280
+  line_spacing = 88
 
   details = [
-      ("Member Name:", member_name),
-      ("Member ID:", auto_member_id),
-      ("District:", district),
-      (
-          "Date of Joining:",
-          datetime.now().strftime("%d-%b-%Y").upper(),
-      ),
-      ("Designation:", designation),
+    ("Member Name:", member_name),
+    ("Member ID:", auto_member_id),
+    ("District:", district),
+    (
+      "Date of Joining:",
+      datetime.now().strftime("%d-%b-%Y").upper(),
+    ),
+    ("Designation:", designation),
   ]
 
   for label, value in details:
     draw.text((start_x, start_y), label, fill=maroon, font=font_subtitle)
     draw.text(
-        (start_x, start_y + 25), value, fill=dark_text, font=font_body
+      (start_x, start_y + 32), value, fill=dark_text, font=font_body
     )
     start_y += line_spacing
 
   # 4. Bottom Footer Banner
   draw.rectangle(
-      [(0, card_height - 150), (card_width, card_height)], fill=maroon
+    [(0, card_height - 120), (card_width, card_height)], fill=maroon
   )
   draw.rectangle(
-      [(0, card_height - 155), (card_width, card_height - 150)], fill=gold
+    [(0, card_height - 125), (card_width, card_height - 120)], fill=gold
   )
 
   footer_text_1 = "Pannappatty, Manapparai, Trichy • Phone: 8870942555"
   footer_text_2 = (
-      "Issued by: PATTAMPOOCHI JANANAYAGA KATCHI (PJK), TAMIL NADU, INDIA"
+    "Issued by: PATTAMPOOCHI JANANAYAGA KATCHI (PJK), TAMIL NADU, INDIA"
   )
 
-  draw.text((40, card_height - 120), footer_text_1, fill=(255, 255, 255), font=font_subtitle)
-  draw.text((40, card_height - 75), footer_text_2, fill=gold, font=font_subtitle)
+  draw.text(
+    (20, card_height - 95), footer_text_1, fill=(255, 255, 255), font=font_footer
+  )
+  draw.text(
+    (20, card_height - 55), footer_text_2, fill=gold, font=font_footer
+  )
 
   # Display Generated Card in Streamlit
   st.success("ID Card generated successfully!")
@@ -129,8 +142,8 @@ if submitted:
   card.save("pjk_membership_card.png")
   with open("pjk_membership_card.png", "rb") as file:
     st.download_button(
-        label="Download ID Card",
-        data=file,
-        file_name="pjk_membership_card.png",
-        mime="image/png",
+      label="Download ID Card",
+      data=file,
+      file_name="pjk_membership_card.png",
+      mime="image/png",
     )
