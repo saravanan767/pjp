@@ -1,4 +1,5 @@
 from datetime import datetime
+from pathlib import Path
 import secrets
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 import streamlit as st
@@ -44,8 +45,8 @@ if submitted:
   dark_text = (34, 34, 34)
 
   # 1. Top Header Banner
-  draw.rectangle([(0, 0), (card_width, 180)], fill=maroon)
-  draw.rectangle([(0, 175), (card_width, 185)], fill=gold)
+  draw.rectangle([(0, 0), (card_width, 225)], fill=maroon)
+  draw.rectangle([(0, 220), (card_width, 230)], fill=gold)
 
   # Load standard fonts ( fallbacks to default if custom ttf paths aren't local )
   try:
@@ -65,18 +66,32 @@ if submitted:
       font_body = ImageFont.load_default()
       font_footer = ImageFont.load_default()
 
-  # Header Text
+  # Header logo and centered card title
+  logo = Image.open(Path(__file__).with_name("logo.png")).convert("RGB")
+  logo = ImageOps.contain(logo, (100, 100))
+  card.paste(logo, (28 + (100 - logo.width) // 2, 48 + (100 - logo.height) // 2))
+
+  header_center_x = (145 + card_width) // 2
   draw.text(
-    (175, 38),
-    "PJK MEMBERSHIP CARD",
+    (header_center_x, 30),
+    "PATTAMPOOCHI",
     fill=(255, 255, 255),
     font=font_title,
+    anchor="mt",
   )
   draw.text(
-    (175, 95),
-    "PATTAMPOOCHI JANANAYAGA KATCHI",
+    (header_center_x, 75),
+    "JANANAYAGA KATCHI",
     fill=gold,
+    font=font_title,
+    anchor="mt",
+  )
+  draw.text(
+    (header_center_x, 155),
+    "MEMBERSHIP ID CARD",
+    fill=(255, 255, 255),
     font=font_subtitle,
+    anchor="mt",
   )
 
   # 2. Member Photo Placement Box
@@ -128,10 +143,18 @@ if submitted:
   )
 
   draw.text(
-    (20, card_height - 95), footer_text_1, fill=(255, 255, 255), font=font_footer
+    (card_width // 2, card_height - 95),
+    footer_text_1,
+    fill=(255, 255, 255),
+    font=font_footer,
+    anchor="mm",
   )
   draw.text(
-    (20, card_height - 55), footer_text_2, fill=gold, font=font_footer
+    (card_width // 2, card_height - 55),
+    footer_text_2,
+    fill=gold,
+    font=font_footer,
+    anchor="mm",
   )
 
   # Display Generated Card in Streamlit
