@@ -25,7 +25,7 @@ with st.form("id_card_form"):
     district = st.text_input("District", "")
     
     # Designation forced to default to 'MEMBER'
-    designation = st.text_input("Designation", "MEMBER")
+    designation = st.text_input("Voter's id, "")
     
     uploaded_file = st.file_uploader(
         "Upload Member Photo (Passport Size)", type=["jpg", "jpeg", "png"]
