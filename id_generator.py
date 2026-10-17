@@ -1,4 +1,4 @@
-from time import datetime
+from datetime import datetime
 from pathlib import Path
 import secrets
 from PIL import Image, ImageDraw, ImageFont, ImageOps
