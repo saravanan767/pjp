@@ -1,4 +1,4 @@
-from datetime import datetime
+Voter'ssetime import datetime
 from pathlib import Path
 import secrets
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -25,7 +25,7 @@ with st.form("id_card_form"):
     district = st.text_input("District", "")
     
     # Designation forced to default to 'MEMBER'
-    designation = st.text_input("Voter's id, "")
+    designation = st.text_input("Voter-id-no", "")
     
     uploaded_file = st.file_uploader(
         "Upload Member Photo (Passport Size)", type=["jpg", "jpeg", "png"]
